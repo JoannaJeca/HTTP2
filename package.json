@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "ts-node-dev --respawn --transpile-only ./Site/GetPostMethod/CRassignment.ts",
+    "start": "ts-node-dev --respawn --transpile-only ./Site/GetPostMethod/CRUDassignment.ts",
     "dev": "ts-node-dev ./ASSIGNMENT/assignment2.ts"
   },
   "keywords": [],
