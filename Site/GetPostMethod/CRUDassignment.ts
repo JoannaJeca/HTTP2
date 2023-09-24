@@ -1,140 +1,129 @@
-import http, { IncomingMessage, ServerResponse } from "http"
+import http, {ServerResponse, IncomingMessage} from "http"
 
 interface iData{
-    id:number,
-    name:string,
+    id:number
+    name:string
     class:string
+    age:number
 }
 
-interface iResponse{
-    response:string,
-    success:boolean
+interface iMessage{
+    message:string,
+    success:boolean,
     data:null | {} | {}[]
 }
 
 let Data:iData[] =[
     {
         id:1,
-        name:"Wisdom",
-        class:"Set08"
+        name:"Jemima",
+        class:"Set08",
+        age:25
     },
     {
-        id:1,
-        name:"Wisdom",
-        class:"Set08"
+        id:2,
+        name:"Jessica",
+        class:"Set08",
+        age:27
     },
     {
-        id:1,
-        name:"Wisdom",
-        class:"Set08"
+        id:3,
+        name:"Regina",
+        class:"Set08",
+        age:30
     },
     {
-        id:1,
-        name:"Wisdom",
-        class:"Set08"
+        id:4,
+        name:"Joan",
+        class:"Set08",
+        age:35
     },
+
 ] 
 
-const port = 2006
-
-const server= http.createServer((req:IncomingMessage, res:ServerResponse<IncomingMessage>)=>{
+const port = 2008
+const server = http.createServer((req:IncomingMessage, res:ServerResponse<IncomingMessage>)=>{
     res.setHeader("Content-type", "application/json")
-    const {url, method} = req
+    const {method, url} = req
 
     let status = 404
-    let reply:iResponse={
-        response:"Failed",
+    let message:iMessage = {
+        message:"Unsuccessful",
         success:false,
         data:null
     }
 
     const container:any = []
 
-    req
+    req 
        .on("data", (chunk:any)=>{
         container.push(chunk)
        })
        .on("end", ()=>{
-        //PATCH method
-
-        if(method === "PATCH"){
-            const build = JSON.parse(container) 
-            let details:any = url?.split("/")[1]
-            let detailValue:any = parseInt(details)
-
-            const findObject = Data.some((el:any)=>{
-                return el.id === detailValue
-            })
-            if (findObject === false){
-                status = 404
-                reply.response = "Unsuccessfully in updating name"
-                reply.success=false
-                reply.data= null
-                res.write(JSON.stringify({reply, status}))
-                res.end()
-            } else{
-            const UpdateUserName = build.name
-
-            Data = Data.map((user:any)=>{
-               if(user?.id === detailValue){
-                return{
-                    id : user?.id,
-                    name : UpdateUserName,
-                    class: user?.class
-
-                }
-               }
-               return user
-            })
-
+        //get method 
+        if(method ==="GET" && url === "/"){
             status = 200
-            reply.response = "Successfully in updating name"
-                reply.success=true
-                reply.data= Data
-                res.write(JSON.stringify({reply, status}))
+            message.message="Successfully read"
+            message.success=true,
+            message.data=Data,
+            res.write(JSON.stringify({message, status}))
+            res.end()
+        }
+        //POST method
+        if(url === "/" && method ==="POST"){
+            const body= JSON.parse(container)
+            Data.push(body)
+            status = 201
+            message.message="SUccessfully created"
+            message.success=true,
+            message.data=Data
+            res.write(JSON.stringify({status, message}))
+            res.end()
+        }
+        //PATCH method
+        if(method ==="PATCH"){
+            const build = JSON.parse(container)
+            let getId:any = url?.split("/")[1]
+            let parsing = parseInt(getId)
+            
+            let findId = Data.some((el:any)=>{
+                return el.id === parsing
+            })
+
+            if(findId === false){
+                status = 404
+                message.message="Unsuccessful"
+                message.success=false
+                message.data=null,
+                res.write(JSON.stringify({status, message}))
                 res.end()
-        }
-        }
-        //PUT method
-        const build = JSON.parse(container) 
-        let details:any = url?.split("/")[1]
-        let detailValue:any = parseInt(details)
+            }else{
+                const updateName = build.name
+                Data = Data.map((user:any)=>{
+                if(user?.id === parsing){
+                    return{
+                        id:user?.id,
+                        name: updateName,
+                        class:user?.class,
+                        age:user?.age
+                    }
+                }return user
+                    
+                })
 
-        const findObject = Data.some((el:any)=>{
-            return el.id === detailValue
-        })
-        if (findObject === false){
-            status = 404
-            reply.response = "Unsuccessfully in updating name"
-            reply.success=false
-            reply.data= null
-            res.write(JSON.stringify({reply, status}))
-            res.end()
-        } else{
-        const UpdateUserName = build.name
-        const UpdateUserClass = build.class
-        
-
-        Data = Data.map((user:any)=>{
-           if(user?.id === detailValue){
-            return{
-                id : user?.id,
-                name : UpdateUserName,
-                class: UpdateUserClass
-
+                status = 200
+                message.message="Successfully changed"
+                message.success=true
+                message.data=Data
+                res.write(JSON.stringify({message, status}))
+                res.end()
             }
-           }
-           return user
-        })
+        }
 
-        status = 200
-        reply.response = "Successfully in updating name"
-            reply.success=true
-            reply.data= Data
-            res.write(JSON.stringify({reply, status}))
-            res.end()
-    }
-    }
-  )
-
+        
        })
+})
+
+server.listen(port, ()=>{
+    console.log("Port running on", port)
+})
