@@ -119,7 +119,45 @@ const server = http.createServer((req:IncomingMessage, res:ServerResponse<Incomi
                 res.end()
             }
         }
+        //PUT method
+        if(method === "PUT"){
+            const build = JSON.parse(container)
+            const details:any = url?.split("/")[1]
+            const parsedDetails = parseInt(details)
 
+            let findId = Data.some((el:any)=>{
+                return el.id === parsedDetails
+            })
+            if(findId === false){
+                status = 404
+                message.message="Failed in changing"
+                message.success=false,
+                message.data=null,
+                res.write(JSON.stringify({message, status}))
+                res.end()
+            }else{
+                const updateAge = build.age
+                const updateClass = build.class
+
+                Data = Data.map((user:any)=>{
+                    if(user?.id === parsedDetails){
+                        return{
+                            id: user?.id,
+                            name:user?.name,
+                            class: updateClass,
+                            age:updateAge
+                        }
+                    }
+                    return user;
+                })
+                status = 200
+                message.message="Succesfully in global changing"
+                message.success=true,
+                message.data=Data,
+                res.write(JSON.stringify({message, status}))
+                res.end()
+            }
+        } 
         
        })
 })
