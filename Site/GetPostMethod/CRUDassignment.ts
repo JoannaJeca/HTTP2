@@ -1,141 +1,166 @@
-import http, {ServerResponse, IncomingMessage} from "http"
+import http , {ServerResponse, IncomingMessage} from 'http'
 
-interface iData{
-    id:number
-    name:string
-    class:string
-    
-}
-
-interface iReply{
-    message:string,
-    success:boolean,
+interface iMessage{
+    response :string
+    success:boolean
     data:null | {} | {}[]
 }
 
-let User:iData[] =[
+interface iData{
+    id:number,
+    name:string,
+    age:number,
+    class:string
+}
+
+let Data:iData[] =[
     {
         id:1,
-        name:"Ayo",
-        class:"Set08",
-       
-    },
-    {
+        name:"Rufai",
+        age:19,
+        class:"Class08"
+    }, {
         id:2,
-        name:"Tobi",
-        class:"Set08",
-        
-    },
-    {
+        name:"Elijah",
+        age:19,
+        class:"Class08"
+    }, {
         id:3,
-        name:"Habeeb",
-        class:"Set08",
-        
-    },
-    {
+        name:"Eronmonsele",
+        age:19,
+        class:"Class08"
+    }, {
         id:4,
-        name:"Wisdom",
-        class:"Set08",
-        
+        name:"Peters",
+        age:19,
+        class:"Class08"
+    }, {
+        id:5,
+        name:"Adisa",
+        age:19,
+        class:"Class08"
     },
-
 ] 
+
+
 
 const port = 2008
 const myServer = http.createServer((req:IncomingMessage, res:ServerResponse<IncomingMessage>)=>{
     res.setHeader("Content-type", "application/json")
-    const {url, method} = req
-
+    const {method, url} = req
     let status = 404
-    let reply:iReply={
-        message:"Unsuccessful!",
+
+    let feedback:iMessage={
+        response:"Unsuccessful",
         success:false,
-        data:User
+        data:null
     }
 
     const container:any = []
 
-    req 
+    req
        .on("data", (chunk:any)=>{
         container.push(chunk)
        })
        .on("end", ()=>{
-        //PUT method
-        if(method === "PUT"){
+        //GET method
+        if(url ==="/" && method=== "GET"){
+            status = 200
+            feedback.response="Successsfully read"
+            feedback.success=true,
+            feedback.data=Data
+            res.write(JSON.stringify({feedback, status}))
+            res.end()
+        }
+        //POST method
+        if(url ==="/" && method ==="POST"){
+            const body = JSON.parse(container)
+            Data.push(body)
+            status = 201
+            feedback.response="Successfully created!"
+            feedback.success=true,
+            feedback.data=Data
+            res.write(JSON.stringify({feedback, status}))
+            res.end()
+        }
+        //PATCH method 
+        if(method ==="PATCH"){
             const build = JSON.parse(container)
-            const deta:any = url?.split("/")[1]
-            const parsedDeta = parseInt(deta)
+            let details:any = url?.split("/")[1]
+            let dataValue = parseInt(details)
 
-            let findObject = User.some((el:any)=>{
-                return el.id === parsedDeta
+            let findObject = Data.some((el:any)=>{
+                return el.id === dataValue
             })
-            if(findObject === false){
+            if(findObject=== false){
                 status = 404
-                reply.message="Unsuccesful",
-                reply.success=true,
-                reply.data=null,
-                res.write(JSON.stringify({reply, status}))
+                feedback.response="Unsuccessful"
+                feedback.success=false
+                feedback.data=null
+                res.write(JSON.stringify({feedback, status}))
+                res.end()
+            }else{
+                const updateAge = build.age
+                Data = Data.map((user:any)=>{
+                    if(user?.id === dataValue){
+                        return{
+                            id : user?.id,
+                            name : user?.name,
+                            class: user?.class,
+                            age: updateAge
+                        }
+                    }
+                    return user
+                })
+                status = 200
+                feedback.response="Successfully changed a value"
+                feedback.success=true,
+                feedback.data= Data,
+                res.write(JSON.stringify({feedback, status}))
+                res.end()
+            }
+        }
+        //PUT method
+        if(method ==="PUT"){
+            const build= JSON.parse(container)
+            let dataValue:any =  url?.split("/")[1]
+            let parsedData = parseInt(dataValue)
+
+            let updater = Data.some((el:any)=>{
+                return el.id=== parsedData
+            })
+            if(updater === false){
+                status = 404
+                feedback.response="Unsucessfully"
+                feedback.success=false
+                feedback.data = null
+                res.write(JSON.stringify({status, feedback}))
                 res.end()
             }else{
                 const updateName = build.name
                 const updateClass = build.class
-                User = User.map((user:any)=>{
-                    if(user?.id === parsedDeta){
+                Data = Data.map((user:any)=>{
+                    if(user?.id===parsedData){
                         return{
-                            id:user?.id,
-                            name:updateName,
-                            class: updateClass
+                            id : user?.id,
+                            name: updateName,
+                            class:updateClass,
+                            age:user?.age
                         }
-                    }return user
+                    }
+                    return user
                 })
                 status = 200
-                reply.message="Succesful",
-                reply.success=true,
-                reply.data=User,
-                res.write(JSON.stringify({reply, status}))
+                feedback.response="Successfully changed globally"
+                feedback.success=true,
+                feedback.data=Data
+                res.write(JSON.stringify({feedback, status}))
                 res.end()
-            
-            }
-        }
-         //PUT method
-        if(method === "PATCH"){
-            const build = JSON.parse(container)
-            const deta:any = url?.split("/")[1]
-            const parsedDeta = parseInt(deta)
-
-            let findObject = User.some((el:any)=>{
-                return el.id === parsedDeta
-            })
-            if(findObject === false){
-                status = 404
-                reply.message="Unsuccesful",
-                reply.success=true,
-                reply.data=null,
-                res.write(JSON.stringify({reply, status}))
-                res.end()
-            }else{
-                
-                const updateClass = build.class
-                User = User.map((user:any)=>{
-                    if(user?.id === parsedDeta){
-                        return{
-                            id:user?.id,
-                            name:user?.name,
-                            class: updateClass
-                        }
-                    }return user
-                })
-                status = 200
-                reply.message="Succesful",
-                reply.success=true,
-                reply.data=User,
-                res.write(JSON.stringify({reply, status}))
-                res.end()
-            
             }
         }
        })
 })
-myServer.listen("Port", ()=>{
+
+myServer.listen(port, ()=>{
     console.log("Port running on", port)
 })
